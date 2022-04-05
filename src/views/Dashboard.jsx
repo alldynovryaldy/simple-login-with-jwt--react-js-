@@ -1,14 +1,10 @@
 /* This example requires Tailwind CSS v2.0+ */
-import { Fragment } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { BellIcon, MenuIcon, XIcon } from "@heroicons/react/outline";
+import axios from "axios";
+import { useNavigate } from "react-router";
 
-const user = {
-   name: "Tom Cook",
-   email: "tom@example.com",
-   imageUrl:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-};
 const navigation = [
    { name: "Dashboard", href: "#", current: true },
    { name: "Team", href: "#", current: false },
@@ -19,7 +15,7 @@ const navigation = [
 const userNavigation = [
    { name: "Your Profile", href: "#" },
    { name: "Settings", href: "#" },
-   { name: "Sign out", href: "#" },
+   // { name: "Sign out", href: "#" },
 ];
 
 function classNames(...classes) {
@@ -27,16 +23,51 @@ function classNames(...classes) {
 }
 
 export default function Dashboard() {
+   // state user
+   const [user, setUser] = useState({
+      name: "",
+      email: "",
+      imageUrl:
+         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+   });
+
+   // init token
+   const token = localStorage.getItem("token");
+
+   const navigate = useNavigate();
+
+   const getUser = async () => {
+      let { data } = await axios.get("http://127.0.0.1:8000/api/user", {
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
+      // set state user dengan data yg di ambil dari endpoint API
+      setUser({ ...user, name: data.name, email: data.email });
+   };
+
+   const logout = async () => {
+      await axios.post("http://127.0.0.1:8000/api/logout", false, {
+         headers: {
+            Authorization: `Bearer ${token}`,
+         },
+      });
+      localStorage.removeItem("token");
+      navigate("/"); // redirect to login
+   };
+
+   useEffect(() => {
+      // check token at local storage
+      // note :  jika sudah login, tidak bisa kembali ke halaman login
+      if (!localStorage.getItem("token")) {
+         navigate("/"); // redirect to login
+      } else {
+         getUser();
+      }
+   }, []);
+
    return (
       <>
-         {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
          <div className="min-h-full">
             <Disclosure as="nav" className="bg-gray-800">
                {({ open }) => (
@@ -129,6 +160,13 @@ export default function Dashboard() {
                                                 )}
                                              </Menu.Item>
                                           ))}
+                                          <a
+                                             href="#"
+                                             onClick={logout}
+                                             className="block px-4 py-2 text-sm text-gray-700"
+                                          >
+                                             Logout
+                                          </a>
                                        </Menu.Items>
                                     </Transition>
                                  </Menu>
@@ -233,9 +271,7 @@ export default function Dashboard() {
             <main>
                <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                   {/* Replace with your content */}
-                  <div className="px-4 py-6 sm:px-0">
-                     <div className="border-4 border-dashed border-gray-200 rounded-lg h-96" />
-                  </div>
+                  <h1>Selamat datang {user.name}</h1>
                   {/* /End replace */}
                </div>
             </main>

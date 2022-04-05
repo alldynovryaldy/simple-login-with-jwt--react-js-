@@ -40,7 +40,7 @@ const Login = () => {
       // check token at local storage
       // note :  jika sudah login, tidak bisa kembali ke halaman login
       if (localStorage.getItem("token")) {
-         navigate("/ "); // redirect to dashboard
+         navigate("/dashboard"); // redirect to dashboard
       }
    }, []);
 
