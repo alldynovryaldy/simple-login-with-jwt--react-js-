@@ -1,7 +1,10 @@
+import Router from "./router";
+
 function App() {
    return (
       <div className="App">
-         <h1 className="text-3xl font-bold underline">Hello world!</h1>
+         {/* Router adalah tempat halaman yg akan di render */}
+         <Router />
       </div>
    );
 }
