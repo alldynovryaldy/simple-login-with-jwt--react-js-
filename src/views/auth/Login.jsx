@@ -1,7 +1,49 @@
-import { LockClosedIcon } from "@heroicons/react/solid";
-import { Link } from "react-router-dom";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
+   // state credential
+   const [credentials, setCredentials] = useState({
+      email: "",
+      password: "",
+   });
+
+   // state validasi error
+   const [validasi, setValidasi] = useState([]);
+
+   // init navigate
+   let navigate = useNavigate();
+
+   const login = async (e) => {
+      e.preventDefault();
+
+      try {
+         let { data } = await axios.post(
+            "http://127.0.0.1:8000/api/login",
+            credentials
+         );
+
+         // set token to local storage
+         localStorage.setItem("token", data.token);
+
+         // redirect to dashboard
+         navigate("/dashboard");
+      } catch (error) {
+         // masukkan response error ke state validasi
+         setValidasi(error.response.data);
+      }
+   };
+
+   // akan di jalankan ketika halaman di render
+   useEffect(() => {
+      // check token at local storage
+      // note :  jika sudah login, tidak bisa kembali ke halaman login
+      if (localStorage.getItem("token")) {
+         navigate("/ "); // redirect to dashboard
+      }
+   }, []);
+
    return (
       <>
          <div className="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -25,7 +67,7 @@ const Login = () => {
                      </Link>
                   </p>
                </div>
-               <form className="mt-8 space-y-6" action="#" method="POST">
+               <form onSubmit={login} className="mt-8 space-y-6">
                   <input type="hidden" name="remember" defaultValue="true" />
                   <div className="rounded-md shadow-sm -space-y-px">
                      <div>
@@ -37,10 +79,23 @@ const Login = () => {
                            name="email"
                            type="email"
                            autoComplete="email"
-                           required
+                           // required
+                           value={credentials.email}
+                           onChange={(e) =>
+                              setCredentials({
+                                 ...credentials,
+                                 email: e.target.value,
+                              })
+                           }
                            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                            placeholder="Email address"
                         />
+                        {/* message error validasi */}
+                        {validasi.email && (
+                           <div className="pb-2 text-sm text-red-500">
+                              {validasi.email[0]}
+                           </div>
+                        )}
                      </div>
                      <div>
                         <label htmlFor="password" className="sr-only">
@@ -51,10 +106,23 @@ const Login = () => {
                            name="password"
                            type="password"
                            autoComplete="current-password"
-                           required
+                           // required
+                           value={credentials.password}
+                           onChange={(e) =>
+                              setCredentials({
+                                 ...credentials,
+                                 password: e.target.value,
+                              })
+                           }
                            className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                            placeholder="Password"
                         />
+                        {/* message error validasi */}
+                        {validasi.password && (
+                           <div className="pb-2 text-sm text-red-500">
+                              {validasi.password[0]}
+                           </div>
+                        )}
                      </div>
                   </div>
 
@@ -86,7 +154,7 @@ const Login = () => {
 
                   <div>
                      <button
-                        type="button"
+                        type="submit"
                         className="group relative w-full flex justify-center py-2 px-4 mb-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                      >
                         Sign in
